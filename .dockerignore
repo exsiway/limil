@@ -1,0 +1,25 @@
+# Build context for deploy/daemon/Dockerfile is the repository root
+# (deploy/runner/docker-compose.yml: context ../..). Without this file every
+# build streamed node_modules, .git, secrets/, certs/, data/ and the runner's
+# .env (VNC password) to the Docker daemon, and a `COPY . .` added later would
+# have baked them into the image.
+#
+# Allowlist rather than blocklist: the Dockerfile copies exactly package.json,
+# package-lock.json, src/ and daemon/, so everything else is excluded by the
+# first line and only those four are let back in. Adding a COPY to the
+# Dockerfile means adding a `!` line here, or the build fails visibly with
+# "not found", which is the wanted failure mode.
+*
+!package.json
+!package-lock.json
+!src
+!daemon
+
+# Inside the allowed directories: the hub's runtime state (pairing tokens,
+# replay nonces) must never reach an image, and neither must editor litter or
+# documentation the process does not read.
+daemon/data
+**/state.json
+**/state.json.tmp
+**/*.md
+**/.DS_Store

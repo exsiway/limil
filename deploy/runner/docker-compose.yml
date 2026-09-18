@@ -1,0 +1,76 @@
+# limil runner: Chromium with the extension preloaded, reachable through a
+# browser-based desktop (noVNC) so you can log in to FOMO once and leave the
+# tab open on the server. See docs/SELF-HOSTING.md.
+#
+# The extension folder is bind-mounted from the repository: rebuild on the
+# host (scripts/update.sh) and the extension inside Chromium reloads itself
+# within two minutes (background/selfupdate.js); scripts/update.sh restarts
+# this service as well, so an update never leaves it on the old build.
+services:
+  # The hub: the laptop mirrors its orders here, the runner browser below
+  # pulls them and executes through FOMO. Pair the laptop with the PUBLIC_URL
+  # string, pair the browser with the runner string (RUNNER_URL, reachable
+  # inside this stack as http://daemon:8787). Both are printed in the log.
+  daemon:
+    build:
+      context: ../..
+      dockerfile: deploy/daemon/Dockerfile
+    container_name: limil-hub
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+    environment:
+      - DAEMON_PORT=8787
+      - PUBLIC_URL=${PUBLIC_URL:-}
+      - RUNNER_URL=http://daemon:8787
+      - DAEMON_TLS_CERT=${DAEMON_TLS_CERT:-}
+      - DAEMON_TLS_KEY=${DAEMON_TLS_KEY:-}
+    volumes:
+      - daemon-data:/data
+      - ${CERTS_DIR:-./certs}:/certs:ro
+    ports:
+      # Local only by default: the laptop pairs over an SSH tunnel, or you
+      # put TLS on it (DAEMON_TLS_*) and publish on 0.0.0.0. Plain http to a
+      # public address is refused by the extension.
+      - "${DAEMON_BIND_ADDR:-127.0.0.1}:${DAEMON_HOST_PORT:-8787}:8787"
+
+  runner:
+    # Pinned to a release tag rather than :latest; Dependabot proposes moves.
+    image: lscr.io/linuxserver/chromium:d39975b5-ls51
+    container_name: limil-runner
+    restart: unless-stopped
+    security_opt:
+      # Chromium's own sandbox needs user namespaces (clone/unshare/setns),
+      # which Docker's default seccomp profile denies. Rather than dropping
+      # the filter altogether, this profile allows exactly the syscalls a
+      # browser needs and keeps everything else (mount, ptrace, bpf, kexec,
+      # module loading, keyctl, ...) blocked.
+      - seccomp:./chromium-seccomp.json
+    shm_size: "1gb"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-UTC}
+      - CUSTOM_USER=${VNC_USER:-limil}
+      - PASSWORD=${VNC_PASSWORD:?set VNC_PASSWORD in .env}
+      - TITLE=limil runner
+      # Chromium flags: load the extension, open FOMO, never throttle the tab
+      # (a throttled background tab stops the chart feed the watcher relies on).
+      - CHROME_CLI=--load-extension=/config/extension --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows https://fomo.family
+    volumes:
+      # Chromium reads administrator settings from here. `scripts/pair-runner.sh`
+      # writes the hub pairing into it so this browser can be paired from a
+      # shell instead of through the remote desktop. Read-only to the browser.
+      - ./policies:/etc/chromium/policies/managed:ro
+      - runner-config:/config
+      - ../../extension:/config/extension:ro
+    ports:
+      - "127.0.0.1:3000:3000"                 # http noVNC: local only, always (no TLS)
+      - "${BIND_ADDR:-127.0.0.1}:3001:3001"   # https noVNC (self-signed)
+
+volumes:
+  runner-config:
+  daemon-data:

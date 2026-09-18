@@ -1,0 +1,22 @@
+# Keys that may sign a limil release tag (scripts/update.sh, LIMIL_UPDATE_MODE=signed).
+#
+# Format is OpenSSH's allowed_signers: one line per key,
+#
+#   <principal> namespaces="git" <key type> <public key> [comment]
+#
+# The principal is the e-mail the tag is signed as. A release is signed with
+#
+#   git config gpg.format ssh
+#   git config user.signingkey ~/.ssh/id_ed25519.pub
+#   git tag -s v0.2.0 -m "limil 0.2.0"
+#
+# and verified on the server with
+#
+#   git -c gpg.ssh.allowedSignersFile=deploy/allowed_signers verify-tag v0.2.0
+#
+# PGP-signed tags verify against the server's GPG keyring instead; this file
+# is then not consulted. Until a maintainer key is added below, automatic
+# updates refuse every tag, that is the intended default, not a bug.
+#
+# maintainer@example.com namespaces="git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA...
+exsiway@users.noreply.github.com namespaces="git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINredf5iT5Af3cBScX+ocC5vvRcadKcuxhBxugqFxrCo

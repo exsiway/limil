@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.limil.hub-tunnel</string>
+  <!-- The limil hub on the server listens on its Tailscale address only.
+       This tunnel makes it http://127.0.0.1:8787 on this laptop, over SSH,
+       and launchd restarts it whenever it drops. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/ssh</string>
+    <string>-N</string>
+    <string>-o</string><string>BatchMode=yes</string>
+    <string>-o</string><string>ServerAliveInterval=30</string>
+    <string>-o</string><string>ServerAliveCountMax=3</string>
+    <string>-o</string><string>ExitOnForwardFailure=yes</string>
+    <string>-o</string><string>ConnectTimeout=15</string>
+    <string>-L</string><string>127.0.0.1:8787:<hub-tailscale-ip-or-127.0.0.1>:8787</string>
+    <string><user@server></string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>15</integer>
+  <key>StandardOutPath</key><string>~/Library/Logs/limil-hub-tunnel.log</string>
+  <key>StandardErrorPath</key><string>~/Library/Logs/limil-hub-tunnel.log</string>
+</dict>
+</plist>

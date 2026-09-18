@@ -1,0 +1,41 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    ignore:
+      # The contract pragma pins solidity 0.8.28; a compiler bump changes the
+      # deployed bytecode and is a release decision, not a dependency update.
+      - dependency-name: solc
+      # The in-memory EVM used by the contract tests; major versions change
+      # the API and are migrated deliberately, together.
+      - dependency-name: "@ethereumjs/*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # codeql-action's init and analyze must run the same version; separate
+      # bump PRs leave them apart and CodeQL fails on "Loaded a configuration
+      # file for version X, but running version Y". One PR moves both.
+      codeql:
+        patterns:
+          - "github/codeql-action*"
+  # The hub image is pinned by digest; Dependabot proposes the next one.
+  # scripts/update.sh reads the digest from that Dockerfile, so one bump
+  # moves both the hub and the build container.
+  - package-ecosystem: docker
+    directory: /deploy/daemon
+    schedule:
+      interval: weekly
+    ignore:
+      # Stay on the Node major the hub is tested with; digest moves within
+      # 22-alpine are wanted, a jump to another major is not.
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
+  # /deploy/runner is not listed: it holds a compose file, not a Dockerfile,
+  # and the docker ecosystem does not read one. Its Chromium image is pinned by
+  # tag and bumped by hand when the runner is rebuilt.

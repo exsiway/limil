@@ -1,0 +1,48 @@
+{
+  "name": "limil",
+  "version": "0.2.1",
+  "private": true,
+  "type": "module",
+  "description": "Limit orders for FOMO (fomo.family). Chrome extension, runs entirely in your browser.",
+  "keywords": [
+    "chrome-extension",
+    "fomo",
+    "limit-orders",
+    "eip-7702",
+    "erc-4337"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "build:contract": "node scripts/build-contract.mjs",
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
+    "audit": "npm audit --audit-level=high",
+    "ext": "node scripts/install-extension.mjs",
+    "courier": "node scripts/new-courier.mjs",
+    "deploy:guard": "node scripts/deploy-guard.mjs",
+    "pack:store": "node scripts/pack-store.mjs"
+  },
+  "dependencies": {
+    "viem": "2.56.3"
+  },
+  "devDependencies": {
+    "@ethereumjs/common": "^4.4.0",
+    "@ethereumjs/util": "^9.1.0",
+    "@ethereumjs/vm": "^8.1.1",
+    "esbuild": "0.28.2",
+    "solc": "^0.8.28"
+  },
+  "overrides": {
+    "tmp": "^0.2.6"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/exsiway/limil",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/exsiway/limil"
+  }
+}

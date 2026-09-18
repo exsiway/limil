@@ -1,0 +1,246 @@
+/* Popup layout. Colours, radii and shared elements come from shared/theme.js
+   (FOMO's own tokens); only what is specific to the popup window lives here.
+   The @font-face below is the bundled fallback for Aeonik, which the popup
+   cannot load. */
+
+@font-face {
+  font-family: 'LimilSans';
+  src: url('../fonts/manrope.woff2') format('woff2');
+  font-weight: 400 800;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2122, U+2212;
+}
+@font-face {
+  font-family: 'LimilSans';
+  src: url('../fonts/manrope-cyr.woff2') format('woff2');
+  font-weight: 400 800;
+  font-display: swap;
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'LimilMono';
+  src: url('../fonts/jetbrains.woff2') format('woff2');
+  font-weight: 400 600;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2122, U+2212;
+}
+@font-face {
+  font-family: 'LimilMono';
+  src: url('../fonts/jetbrains-cyr.woff2') format('woff2');
+  font-weight: 400 600;
+  font-display: swap;
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+* { box-sizing: border-box; }
+
+/* Spacing scale. Everything below sits on it: 4 / 8 / 12 / 16 / 20 px. Inside
+   a card, siblings are separated by the card's flex gap (12), so no element
+   carries its own vertical margin; between cards the tab panel's gap (12);
+   the window edge is 16. */
+:root { --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; }
+
+/* Chrome clips the popup to the html radius, hence the soft corners. Both
+   elements need the background or the clipped corners show white. */
+html {
+  width: 384px;
+  border-radius: 16px;
+  background: var(--lc-bg, #060510);
+  /* No scrollbar and no gutters: the popup scrolls with the wheel and the
+     trackpad like the app itself, and the insets are the same on both sides
+     whether or not the content is taller than the window. */
+  overflow-x: hidden;
+  scrollbar-width: none;
+  color-scheme: dark;
+}
+html::-webkit-scrollbar { display: none; }
+
+/* `hidden` means hidden, everywhere and without exception.
+ *
+ * The browser hides the attribute through its own stylesheet, and ANY author
+ * rule that sets `display` beats it, author styles win over the user agent's
+ * regardless of specificity. `.field { display: block }` below therefore kept
+ * the provider question on screen no matter what the popup's code set, and
+ * the code looked correct while the interface disagreed with it. Two other
+ * blocks had already been patched one by one; this replaces the patches, so
+ * the next element that needs hiding cannot inherit the same surprise. */
+[hidden] { display: none !important; }
+
+body {
+  width: auto;
+  margin: 0;
+  padding: var(--sp-4) var(--sp-4) var(--sp-2);
+  border-radius: 16px;
+  background: var(--lc-bg, #060510);
+  color: var(--lc-text, #f7f7f7);
+  font: 500 14px/1.5 var(--lc-font, 'LimilSans', system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+header { margin-bottom: var(--sp-3); }
+.brand { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); margin: 0 0 var(--sp-3); }
+.brand-logo { display: block; height: 36px; width: auto; }
+/* Card titles the way FOMO sets “Your positions”: text-base, bold, primary. */
+h2 {
+  margin: 0; padding: 0 var(--sp-1); font-size: 16px; font-weight: 700; line-height: 1.5;
+  color: var(--lc-text);
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* Language menu in the header: a quiet chip, like their period switcher. */
+.lang {
+  appearance: none; border: none; background: var(--lc-card); color: var(--lc-dim);
+  border-radius: var(--lc-r-xs); padding: 4px 22px 4px 8px; font: inherit; font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%239899a3' stroke-width='1.5' stroke-linecap='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 8px center;
+}
+.lang:hover { color: var(--lc-text); }
+[dir="rtl"] .lang { padding: 4px 8px 4px 22px; background-position: left 8px center; }
+
+.panel { display: flex; flex-direction: column; gap: var(--sp-3); }
+/* Cards breathe: 16 inside, 12 between children (the shared token is 8/8). */
+.panel .lc-card { padding: var(--sp-4); gap: var(--sp-3); }
+/* The autonomous block wraps two cards; it must space them like the panel does. */
+#autonomous-body { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+.field { display: block; }
+.field > span {
+  display: flex; align-items: center; gap: 6px; padding: 0 var(--sp-1);
+  color: var(--lc-dim); font-size: 12px; margin-bottom: 6px;
+}
+.field input, .field select {
+  width: 100%; min-height: 40px; padding: 8px 12px;
+  background: var(--lc-card); border: 1px solid transparent;
+  border-radius: var(--lc-r-sm); color: var(--lc-text);
+  font: inherit; font-size: 14px; font-weight: 500;
+}
+.field input::placeholder { color: var(--lc-faint); }
+.field input:focus, .field select:focus {
+  outline: none; border-color: var(--lc-line-strong);
+}
+.field select {
+  appearance: none; cursor: pointer; padding-right: 32px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5l5 5 5-5' fill='none' stroke='%239899a3' stroke-width='1.5' stroke-linecap='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+[dir="rtl"] .field select { padding-right: 12px; padding-left: 32px; background-position: left 12px center; }
+.field select:disabled { color: var(--lc-faint); cursor: default; }
+
+.row { display: flex; gap: 10px; align-items: center; }
+.field-inline .row input { flex: 1; min-width: 0; }
+.field-inline .row .lc-btn { flex: none; }
+.row .lc-btn { flex: 1; }
+.lc-btn.wide { width: 100%; }
+
+dl { margin: 0; padding: 0 var(--sp-1); display: grid; grid-template-columns: auto 1fr; gap: var(--sp-2) var(--sp-3); }
+dt { color: var(--lc-dim); font-size: 12px; }
+dd {
+  margin: 0; text-align: end; font-size: 12px; font-weight: 500;
+  font-variant-numeric: tabular-nums; word-break: break-word;
+}
+dd.ok { color: var(--lc-buy); }
+dd.warn { color: var(--lc-warn); }
+dd.bad { color: var(--lc-bad); }
+
+.detail {
+  padding: 0 var(--sp-1); white-space: pre-wrap; word-break: break-word;
+  color: var(--lc-dim); font-size: 12px; line-height: 1.5;
+}
+.detail:empty { display: none; }
+/* A note right under its switch belongs to it: half a step, not a full one. */
+.switch-row + .detail { margin-top: calc(-1 * var(--sp-1)); }
+.link { color: var(--lc-accent); text-decoration: none; font-weight: 700; }
+.link:hover { text-decoration: underline; }
+.detail.ok { color: var(--lc-buy); }
+.detail.warn { color: var(--lc-warn); }
+.detail.bad { color: var(--lc-bad); }
+
+.banner {
+  padding: var(--sp-3) 14px;
+  background: var(--lc-warn-soft);
+  border: 1px solid var(--lc-warn);
+  border-radius: var(--lc-r-sm); color: var(--lc-warn);
+  font-size: 12px; line-height: 1.5;
+}
+header .banner { margin-bottom: var(--sp-3); }
+.banner .lc-btn { margin-top: 10px; width: 100%; }
+
+.ready-line {
+  display: flex; align-items: center; gap: 10px; padding: 2px var(--sp-1);
+  font-size: 14px; line-height: 1.5; color: var(--lc-dim);
+}
+.ready-line + .ready-line { margin-top: 6px; }
+/* display:flex above would defeat the hidden attribute on an empty lamp. */
+.ready-line::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--lc-faint); flex: none;
+}
+.ready-line.ok { color: var(--lc-text); }
+.ready-line.ok::before { background: var(--lc-buy); }
+.ready-line.warn { color: var(--lc-warn); }
+.ready-line.warn::before { background: var(--lc-warn); }
+.ready-line.bad { color: var(--lc-bad); }
+.ready-line.bad::before { background: var(--lc-bad); }
+
+
+/* Switch: accent when on, their tertiary fill when off. */
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: 2px var(--sp-1); min-height: 32px; }
+.switch-text { display: inline-flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 500; }
+.switch-label { display: inline-flex; cursor: pointer; }
+.switch-input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+.switch {
+  position: relative; flex: none; width: 44px; height: 24px; border-radius: 999px;
+  background: var(--lc-line); transition: background-color .2s; --travel: 20px;
+}
+.switch-thumb {
+  position: absolute; left: 2px; top: 2px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--lc-text); box-shadow: 0 1px 3px rgba(0,0,0,.35);
+  translate: 0 0; will-change: translate;
+}
+.switch-input:checked + .switch { background: var(--lc-accent); }
+.switch-input:checked + .switch .switch-thumb { translate: var(--travel) 0; }
+.switch-input:checked + .switch.is-init .switch-thumb { animation: switch-on 350ms cubic-bezier(0.34, 1.35, 0.64, 1) both; }
+.switch-input:not(:checked) + .switch.is-init .switch-thumb { animation: switch-off 350ms cubic-bezier(0.34, 1.35, 0.64, 1) both; }
+.switch-input:focus-visible + .switch { outline: 2px solid var(--lc-accent); outline-offset: 2px; }
+@keyframes switch-on {
+  0% { translate: 0 0; }
+  55% { translate: calc(var(--travel) + 1px) 0; }
+  100% { translate: var(--travel) 0; }
+}
+@keyframes switch-off {
+  0% { translate: var(--travel) 0; }
+  55% { translate: -1px 0; }
+  100% { translate: 0 0; }
+}
+[dir="rtl"] .switch-thumb { left: auto; right: 2px; }
+[dir="rtl"] .switch-input:checked + .switch .switch-thumb { translate: calc(-1 * var(--travel)) 0; }
+
+/* collapsed details inside a card: one line closed, the table when opened */
+.lc-details { padding: 0 var(--sp-1); }
+.journal {
+  margin: var(--sp-2) 0; padding: var(--sp-2); max-height: 260px; overflow: auto;
+  font-family: var(--lc-mono); font-size: 11px; line-height: 1.4; white-space: pre-wrap; word-break: break-word;
+  color: var(--lc-dim); background: var(--lc-card); border-radius: var(--lc-r-sm);
+}
+.lc-details summary { cursor: pointer; color: var(--lc-dim); font-size: 12px; list-style: none; display: flex; align-items: center; gap: 8px; min-height: 24px; }
+.lc-details summary::-webkit-details-marker { display: none; }
+.lc-details summary::before { content: ''; width: 6px; height: 6px; border-right: 1.5px solid var(--lc-faint); border-bottom: 1.5px solid var(--lc-faint); transform: rotate(-45deg); transition: transform .15s; }
+.lc-details[open] summary::before { transform: rotate(45deg); }
+.lc-details .brief { margin-left: auto; font-weight: 600; }
+.lc-details .brief.ok { color: var(--lc-buy); }
+.lc-details .brief.bad { color: var(--lc-bad); }
+.lc-details dl { margin-top: 10px; }
+
+/* a plain checkbox line inside a card */
+.check-row { display: flex; align-items: center; gap: 10px; padding: var(--sp-1); color: var(--lc-dim); font-size: 12px; cursor: pointer; min-height: 24px; }
+.check-row input { accent-color: var(--lc-accent); margin: 0; }
+
+/* footer: policy link and author */
+.foot {
+  display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 8px;
+  margin: var(--sp-1) 0 0; font-size: 11px; color: var(--lc-faint); white-space: nowrap;
+}
+.foot .sep { opacity: .6; }
+.foot .link { font-weight: 600; }

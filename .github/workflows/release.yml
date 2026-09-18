@@ -1,0 +1,66 @@
+# A tag builds the extension and attaches it to the release, so installing it
+# needs no terminal, no Node and no clone: download, unzip, load unpacked.
+#
+# The zip is the extension folder as Chrome loads it, manifest key included,
+# so the extension id is the same on every machine and a managed policy can
+# name it. The build stamp comes from the tagged commit's own time
+# (SOURCE_DATE_EPOCH in build.mjs), so the same tag always produces the same
+# bytes and anyone can rebuild the zip and compare.
+
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  zip:
+    name: build and attach the extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild
+      # A tag that does not pass its own tests does not become a download.
+      # The zip is what people install without reading anything, so the gate
+      # belongs here rather than only on the branch: a tag can be pushed from
+      # a working copy that was never on main.
+      # The EVM tests read artifacts/contracts/*.json, which is a build output
+      # and not in the checkout; without this the whole suite fails on ENOENT.
+      - run: npm run build:contract
+      - name: test
+        run: npm test
+      - name: audit the dependencies
+        run: npm audit --audit-level=high
+      - name: the tag and the manifest agree
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          # The manifest Chrome loads, which IS in the checkout. The store
+          # manifest is derived by pack:store and does not exist here.
+          IN_MANIFEST="$(node -p "require('./extension/manifest.json').version")"
+          if [ "$TAG" != "$IN_MANIFEST" ]; then
+            echo "tag $GITHUB_REF_NAME carries manifest version $IN_MANIFEST" >&2
+            exit 1
+          fi
+      - name: build
+        run: SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)" npm run build
+      - name: zip the extension folder
+        run: |
+          NAME="limil-${GITHUB_REF_NAME}.zip"
+          cd extension && zip -qr "../$NAME" . -x '.DS_Store' && cd ..
+          echo "ASSET=$NAME" >> "$GITHUB_ENV"
+          unzip -l "$NAME" | tail -1
+      - name: attach it to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "Download $ASSET, unzip it, and load the folder in chrome://extensions with Developer mode on. Setup: docs/SETUP.md"
+          gh release upload "$GITHUB_REF_NAME" "$ASSET" --clobber

@@ -1,0 +1,56 @@
+node_modules/
+dist/
+build/
+.env
+*.env
+# and every variant beside it: .env.local, .env.bak-<timestamp> (the update
+# script keeps a timestamped copy of the runner's env, which holds the VNC
+# password and the tunnel address). Without these two lines such a backup is
+# untracked but NOT ignored, so a stray `git add -A` on the server would
+# commit it.
+.env.*
+*.env.*
+# The example is documentation and travels with the tree; without this line a
+# fresh `git add` drops it and a clone has no template to copy.
+!deploy/runner/.env.example
+.DS_Store
+*.log
+__pycache__/
+*.pyc
+
+# compiled contract artifacts (npm run build:contract)
+artifacts/
+
+# keys and signed authorizations kept locally by the deploy scripts; never in the tree
+secrets/
+auth.json
+
+# TLS material for the hub (deploy/*/certs); never in the tree
+certs/
+*.pem
+*.key
+
+# hub runtime state: pairing tokens, the order list, the redacted signing
+# sample, replay nonces. Never in the tree, wherever the data directory is
+# pointed.
+data/
+daemon/data/
+deploy/**/data/
+**/state.json
+**/state.json.tmp
+*.bak
+
+# the Chromium managed policy scripts/pair-runner.sh writes: it carries the runner token
+deploy/runner/policies/
+# and the timestamped copies the pairing sync keeps beside it (`limil.json.bak-<ts>` is not
+# matched by `*.bak`): the same token, untracked but NOT ignored without this line
+deploy/runner/.policy-backups/
+
+# store packages (npm run pack:store)
+release/
+
+# dev harness builds (scripts/dev/README.md)
+scripts/dev/legend-stand/bundle.js
+scripts/dev/legend-stand/token-list.js
+scripts/dev/legend-stand/package.json
+scripts/dev/legend-stand/package-lock.json

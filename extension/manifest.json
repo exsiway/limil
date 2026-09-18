@@ -1,0 +1,95 @@
+{
+  "manifest_version": 3,
+  "minimum_chrome_version": "114",
+  "name": "__MSG_extName__",
+  "version": "0.2.1",
+  "//key": "Fixes the extension id (fmjcaabdnlaefjlbkhidnonbpciangdc) so a Chromium managed policy can address this extension by name. Without it an unpacked build gets an id derived from its path, which differs on every machine and cannot be written into a policy in advance. The private half is not needed to load unpacked and is not in this repo.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApukwu+bLsgzx3MaQJ3B1VoxhXyMGxjFUH4tuNGZYfq9sTVTHRkRV5KeQuO3+9LVPyQ52G7JmEw1z5b0MYAuCZUjxrKg644TSIV5khGxHXwDMTxlqk+3W2ZUp+SOZ8T71X5S7CH03mM/GW96EYmN/VRK+AGCW/bEfESlvGKTDxjJjKear1BEoTk1ErPlF/xUvm2wBIUyniyTBSJoA+HhaU3T2r5wjxVly+quBXEpxCivoD5eMpUPKSW6elNxhf03Iha56CWLKyFNjS9/sdrfh0D6gP0TU60wJEjB2d2dXaKLjXxHeBhPvMHPoVJSrsS94kSIxQOZEH8EkPqxjGtExUwIDAQAB",
+  "description": "__MSG_extDesc__",
+  "default_locale": "en",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "storage": {
+    "managed_schema": "managed-schema.json"
+  },
+  "permissions": [
+    "storage",
+    "alarms",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://fomo.family/*",
+    "https://*.fomo.family/*",
+    "https://rpc.mainnet.chain.robinhood.com/*",
+    "https://mainnet.base.org/*",
+    "https://bsc-dataseed.bnbchain.org/*",
+    "https://rpc.ankr.com/*",
+    "https://cloudflare-eth.com/*",
+    "https://api.relay.link/*",
+    "https://api.mainnet-beta.solana.com/*",
+    "https://lite-api.jup.ag/*",
+    "https://aggregator-api.kyberswap.com/*",
+    "https://solana-rpc.publicnode.com/*",
+    "http://daemon:8787/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "background": {
+    "service_worker": "dist/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://fomo.family/*",
+        "https://*.fomo.family/*"
+      ],
+      "js": [
+        "dist/main-world.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "https://fomo.family/*",
+        "https://*.fomo.family/*"
+      ],
+      "js": [
+        "dist/content.js"
+      ],
+      "run_at": "document_start",
+      "world": "ISOLATED",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "fonts/*.woff2"
+      ],
+      "matches": [
+        "https://fomo.family/*",
+        "https://*.fomo.family/*"
+      ]
+    }
+  ],
+  "side_panel": {
+    "default_path": "dist/panel.html"
+  },
+  "action": {
+    "default_popup": "dist/popup.html",
+    "default_title": "limil",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
+  }
+}

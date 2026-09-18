@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>limil</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img class="brand-logo" src="../brand.png" alt="limil" width="105" height="36" />
+      <select id="uiLang" class="lang" aria-label="Language"></select>
+    </div>
+    <div id="reload-banner" class="banner" hidden>
+      <span data-i18n="reload.banner">The FOMO tab is running an old version of the extension.</span>
+      <button id="reload-tab" class="lc-btn" data-i18n="reload.button">Reload tab</button>
+    </div>
+    <div id="perm-banner" class="banner" hidden>
+      <span data-i18n="perm.banner">Chrome has withdrawn the extension's access to some sites it needs (RPC nodes, quote APIs). Balances and orders fail with “Failed to fetch” until it is restored.</span>
+      <button id="perm-restore" class="lc-btn" data-i18n="perm.restore">Restore access</button>
+    </div>
+  </header>
+
+  <div class="panel">
+    <section class="lc-card">
+      <div class="switch-row">
+        <span class="switch-text"><span data-i18n="orders.toggle">Limit orders</span> <span id="orders-toggle-help"></span></span>
+        <label class="switch-label">
+          <input type="checkbox" id="ordersEnabled" class="switch-input" />
+          <span class="switch" aria-hidden="true"><span class="switch-thumb"></span></span>
+        </label>
+      </div>
+      <div id="orders-toggle-info" class="detail"></div>
+    </section>
+
+    <!-- Autonomous mode: the one switch that lets the extension talk to a
+         server of the user's. Off, the extension is local-only. -->
+    <section class="lc-card">
+      <div class="switch-row">
+        <span class="switch-text"><span data-i18n="autonomous.toggle">Autonomous orders (own server)</span> <span id="autonomous-help"></span></span>
+        <label class="switch-label">
+          <input type="checkbox" id="autonomousEnabled" class="switch-input" />
+          <span class="switch" aria-hidden="true"><span class="switch-thumb"></span></span>
+        </label>
+      </div>
+      <div id="autonomous-local" class="detail" data-i18n="autonomous.note.local">Local mode: orders are watched and executed by this browser only. Nothing is sent to any server of yours, and no pairing is accepted.</div>
+      <div id="autonomous-risk" class="banner warn" hidden>
+        <span data-i18n="autonomous.risk">This runs on a machine of yours: a browser signed in to your FOMO account, able to do everything your own browser can. Keeping that machine safe is on you and nobody else, this extension cannot guard it. Use a server you control: reachable only over a tunnel or a VPN, disk encrypted, nothing else running on it.</span>
+        <button id="autonomousAck" class="lc-btn" type="button" data-i18n="autonomous.ack">I understand the risk, enable</button>
+      </div>
+      <div id="autonomous-info" class="detail"></div>
+    </section>
+
+    <div id="autonomous-body" hidden>
+    <section class="lc-card">
+      <!--
+        There is no "use this server" switch any more. It was a third state on
+        top of the two that matter, autonomous mode is the consent, and a
+        paired server is a server in use, and it stood between the person and
+        the only thing this card is for, the pairing field. Pausing a server
+        without unpairing is what the autonomous switch above already does.
+      -->
+      <div class="switch-row">
+        <span class="switch-text"><span data-i18n="daemon.toggle">Your own server</span> <span id="daemon-help"></span></span>
+      </div>
+      <div class="detail"><a id="daemon-guide" class="link" href="https://github.com/exsiway/limil/blob/main/docs/SETUP.md" target="_blank" rel="noopener" data-i18n="daemon.guide">Server setup, step by step</a></div>
+      <div id="daemon-pair" hidden>
+        <label class="field field-inline">
+          <span data-i18n="daemon.pairing">Pairing string from the server</span>
+          <div class="row">
+            <input type="text" id="daemon-pairing" placeholder="http://1.2.3.4:8787#token" spellcheck="false" autocomplete="off" />
+            <button id="daemon-connect" class="lc-btn" type="button" data-i18n="daemon.connect">Connect</button>
+          </div>
+        </label>
+      </div>
+      <div id="runner-pair-cmd" class="detail" hidden>
+        <div data-i18n="daemon.runner.pairIntro">No browser executes on that server yet. Run this on it, the browser pairs itself, no remote desktop needed:</div>
+        <div class="row">
+          <input type="text" id="runner-pair-line" spellcheck="false" autocomplete="off" readonly />
+          <button id="runner-pair-copy" class="lc-btn" type="button" data-i18n="daemon.runner.copy">Copy</button>
+        </div>
+      </div>
+      <details id="daemon-details" class="lc-details" hidden>
+        <summary><span data-i18n="daemon.details">Details</span> <span id="daemon-brief" class="brief"></span></summary>
+        <dl id="daemon-status"></dl>
+        <div id="daemon-info" class="detail"></div>
+      </details>
+      <button id="daemon-disconnect" class="lc-btn wide" hidden data-i18n="daemon.disconnect">Disconnect server</button>
+    </section>
+
+    <section class="lc-card" id="mirror-card">
+      <div class="switch-row">
+        <span class="switch-text"><span data-i18n="mirror.toggle">Runner browser</span> <span id="mirror-help"></span></span>
+      </div>
+      <div class="detail" data-i18n="mirror.note">For the browser on your server: it takes the orders you place on your laptop and executes them here through FOMO.</div>
+      <div id="mirror-pair">
+        <label class="field field-inline">
+          <span data-i18n="mirror.pairing">Runner string from the server</span>
+          <div class="row">
+            <input type="text" id="mirror-pairing" data-i18n-placeholder="mirror.pairing.placeholder" placeholder="the runner string from the server" spellcheck="false" autocomplete="off" />
+            <button id="mirror-connect" class="lc-btn" type="button" data-i18n="daemon.connect">Connect</button>
+          </div>
+        </label>
+      </div>
+      <details id="mirror-details" class="lc-details" hidden>
+        <summary><span data-i18n="daemon.details">Details</span> <span id="mirror-brief" class="brief"></span></summary>
+        <dl id="mirror-status"></dl>
+        <div id="mirror-info" class="detail"></div>
+      </details>
+      <button id="mirror-disconnect" class="lc-btn wide" hidden data-i18n="mirror.disconnect">Stop executing for the laptop</button>
+    </section>
+    </div>
+
+    <section class="lc-card">
+      <div class="switch-row">
+        <span class="switch-text"><span data-i18n="quick.toggle">Quick buy and sell from the feed</span> <span id="quick-help"></span></span>
+        <label class="switch-label">
+          <input type="checkbox" id="quickBuyEnabled" class="switch-input" />
+          <span class="switch" aria-hidden="true"><span class="switch-thumb"></span></span>
+        </label>
+      </div>
+      <label class="field">
+        <span data-i18n="quick.amounts">Button amounts, USD</span>
+        <div class="row">
+          <input type="number" id="quickAmount1" min="1" max="10000" step="1" inputmode="decimal" />
+          <input type="number" id="quickAmount2" min="1" max="10000" step="1" inputmode="decimal" />
+        </div>
+      </label>
+      <label class="field">
+        <span data-i18n="quick.sellPercent">Sell button, % of the holding</span>
+        <div class="row">
+          <input type="number" id="quickSellPercent" min="1" max="100" step="1" inputmode="decimal" />
+        </div>
+      </label>
+      <label class="field">
+        <span><span data-i18n="quick.rpc">Your own Solana node, for speed (optional)</span> <span id="rpc-help"></span></span>
+        <div class="row">
+          <input type="url" id="solanaRpcUrl" placeholder="https://mainnet.helius-rpc.com/?api-key=…" spellcheck="false" autocomplete="off" />
+        </div>
+      </label>
+      <label class="check-row">
+        <input type="checkbox" id="quickConfirm" checked />
+        <span data-i18n="quick.confirmToggle">Ask for a second press before buying</span>
+      </label>
+      <div id="quick-info" class="detail"></div>
+    </section>
+
+    <section class="lc-card">
+      <div class="switch-row">
+        <span class="switch-text"><span data-i18n="feed.toggle">Feed in the side panel</span> <span id="feed-help"></span></span>
+      </div>
+      <div class="detail" data-i18n="feed.needsTab">Needs an open FOMO tab; one is opened pinned when there is none.</div>
+      <button id="feed-open" class="lc-btn wide" type="button" data-i18n="feed.open">Open the panel</button>
+      <div id="feed-info" class="detail"></div>
+    </section>
+
+    <section class="lc-card">
+      <h2><span data-i18n="orders.ready">Status</span> <span id="orders-help"></span></h2>
+      <div id="ready"></div>
+      <details id="journal-details" class="lc-details">
+        <summary><span data-i18n="journal.title">Journal</span> <span id="journal-brief" class="brief"></span></summary>
+        <pre id="journal" class="journal"></pre>
+        <button id="journal-copy" class="lc-btn" type="button" data-i18n="journal.copy">Copy</button>
+      </details>
+    </section>
+    <footer class="foot">
+      <a class="link" href="https://exsiway.github.io/limil-privacy/privacy.html" target="_blank" rel="noopener" data-i18n="footer.privacy">Privacy policy</a>
+      <span class="sep" aria-hidden="true">|</span>
+      <span><span data-i18n="footer.by">by</span> <a class="link" href="https://x.com/exsiway_" target="_blank" rel="noopener">@exsiway_</a></span>
+    </footer>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

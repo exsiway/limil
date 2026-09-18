@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>limil · Privacy policy</title>
+  <meta name="description" content="Privacy policy of limil, a Chrome extension for FOMO: what is stored, what is sent, and to whom." />
+  <link rel="icon" href="icons/icon-32.png" />
+  <style>
+    :root {
+      --bg: #060510; --card: #0f0e1e; --line: #232140; --text: #e9e7f5; --dim: #a19fbf;
+      --faint: #6f6d8c; --accent: #8b6cff; --accent2: #4fd1ff;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); }
+    body {
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 56px 24px 80px; }
+    header { display: flex; align-items: center; gap: 16px; margin-bottom: 40px; }
+    header img { width: 56px; height: 56px; border-radius: 14px; }
+    header h1 { margin: 0; font-size: 28px; letter-spacing: -0.01em; }
+    header p { margin: 2px 0 0; color: var(--dim); font-size: 14px; }
+    .lead {
+      padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--card);
+      color: var(--dim); font-size: 15px;
+    }
+    .lead strong { color: var(--text); }
+    h2 { font-size: 20px; margin: 44px 0 12px; letter-spacing: -0.01em; }
+    h2::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2)); margin-right: 10px; vertical-align: 2px; }
+    p, li { color: var(--dim); }
+    li { margin: 6px 0; }
+    strong { color: var(--text); font-weight: 600; }
+    code { font: 13.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; background: #17162b; padding: 1px 6px; border-radius: 6px; color: var(--text); }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14.5px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--faint); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; }
+    td { color: var(--dim); }
+    td:first-child { color: var(--text); }
+    .table-wrap { overflow-x: auto; }
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--faint); font-size: 13.5px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="icons/icon-128.png" alt="" />
+      <div>
+        <h1>Privacy policy</h1>
+        <p>limil · Chrome extension for FOMO · effective 18 September 2026</p>
+      </div>
+    </header>
+
+    <div class="lead">
+      <strong>limil has no server, no account and no telemetry.</strong> Everything it
+      keeps lives in your browser profile. The only parties that receive anything from it
+      are the services you already use through FOMO. This page lists exactly what is stored, what is sent, and to whom.
+    </div>
+
+    <h2>What is stored, and where</h2>
+    <p>
+      Everything is in <code>chrome.storage.local</code> of the browser profile the extension
+      runs in, except the one-time intents behind a delegation, grant or disconnect, which live
+      in <code>chrome.storage.session</code> and vanish with the browser. Nothing uses
+      <code>chrome.storage.sync</code>, so nothing is copied to a Google account or another device.
+    </p>
+    <p>
+      One exception, and only on a runner browser you run on your own server:
+      <code>scripts/pair-runner.sh</code> writes the pairing string and the risk acknowledgement
+      into Chromium's managed policy, which the extension reads through
+      <code>chrome.storage.managed</code>. That file is on your server, written by you, and
+      carries the pairing token of your own hub; nothing else is ever read from managed storage.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Data</th><th>Purpose</th><th>Leaves the browser?</th></tr></thead>
+        <tbody>
+          <tr><td>Settings (switches, interface language)</td><td>your choices</td><td>no</td></tr>
+          <tr><td>Orders (token, size, target, direction, slippage, status)</td><td>watching and executing</td><td>to your own daemon if you paired one; otherwise no</td></tr>
+          <tr><td>Session key (private)</td><td>signing bounded operations</td><td>never; signatures leave, the key does not</td></tr>
+          <tr><td>Privy envelope sample, stored without its session token</td><td>replaying the wallet's signing request; the live token is taken from the page at use</td><td>to your own hub if you paired one, with its session tokens removed first (withheld when that cannot be proven); otherwise never, it is posted only to the Privy iframe already on the page</td></tr>
+          <tr><td>Executor journal</td><td>telling you what happened and why</td><td>from your own browser, no; a browser running as a runner on your server sends its last 25 lines to your own hub, so you can see on the laptop what it did</td></tr>
+          <tr><td>Daemon pairing state</td><td>reaching your own server</td><td>to that server only</td></tr>
+          <tr><td>Runner policy (pairing string, risk acknowledgement, daily limit), self-hosted runner only</td><td>pairing that browser with your own hub without a popup</td><td>to your own hub only; you write it into Chromium's managed policy on your server</td></tr>
+        </tbody>
+      </table>
+
+    <h2>Leaving a hub</h2>
+    <p>
+      Unpairing is not only a disconnection, it is an erasure. The hub drops the order list, both
+      wallet addresses, the signing sample and its own journal, and resets the runner browser's
+      record to the pairing alone, without its reported journal or the account it was signed in to.
+      The runner keeps its own pairing, because that credential belongs to the machine rather than
+      to you, but the hub refuses journal lines older than the owner who is paired now. So a hub
+      handed on, or paired again by someone else, carries nothing of what you did with it.
+    </p>
+    </div>
+
+    <h2>What is sent, and to whom</h2>
+    <ul>
+      <li><strong>FOMO</strong> (<code>fomo.family</code>, its subdomains and bundler). Quotes, balances and signed operations, with the session headers FOMO's own front end already sends. This is the same traffic a tap in the app produces.</li>
+      <li><strong>Privy</strong> (the wallet iframe on the page). Signing requests through <code>postMessage</code>. No network request of the extension's own.</li>
+      <li><strong>Public RPC nodes</strong> (Robinhood Chain, Base, BNB Chain, Ethereum, Solana; listed in the manifest; Monad through <code>rpc.ankr.com</code>). Reads only: nonces, code, balances, quoter simulations. They see your wallet address, as any block explorer would.</li>
+      <li><strong>Public aggregators</strong> (<code>api.relay.link</code>, KyberSwap, Jupiter). Quote requests for impact and route checks. They see token addresses and amounts, not your identity.</li>
+      <li><strong>Jito</strong> (Solana). Signed buy transactions.</li>
+      <li><strong>Your own hub</strong>, if paired. The live orders, your wallet addresses (EVM and Solana) and the Privy envelope sample with its session tokens removed, so a browser on your server can sign without a sell of its own; the sample stays in the browser when the redaction cannot prove it clean. Requests are signed by your session key. It is your server: nothing goes anywhere else.</li>
+    </ul>
+    <p>Nothing is sent to the authors of limil. There is no analytics, crash reporting or update check.</p>
+
+    <h2>Permissions</h2>
+    <p>
+      <code>storage</code>, <code>alarms</code>, <code>sidePanel</code> (the feed shown in Chrome's side
+      panel, read from an open FOMO tab; the panel stores nothing), and host permissions for fomo.family, the RPC nodes (including a Solana node of your own, if you paste one into the popup; its URL and key stay in this browser) and
+      the quote APIs above. The optional permission for any origin covers one thing: a self-hosted
+      hub runs on an address only you know, and Chrome asks you once when you pair it. Nothing else
+      is ever requested.
+    </p>
+
+    <h2>Children</h2>
+    <p>limil is a trading tool and is not intended for anyone under 18.</p>
+
+    <h2>Removing everything</h2>
+    <p>
+      Turn <strong>Limit orders</strong> off in the popup (this returns the wallet to FOMO's
+      account contract), then remove the extension. Chrome deletes its storage with it.
+    </p>
+
+    <h2>Changes and contact</h2>
+    <p>
+      Changes to this policy are published on this page; the same text is kept as
+      <a href="https://github.com/exsiway/limil-privacy/blob/main/PRIVACY.md">PRIVACY.md</a> next to it.
+      Questions: <a href="https://x.com/exsiway_">@exsiway_</a>.
+    </p>
+
+    <footer>
+      <span>limil · MIT licensed · not affiliated with FOMO</span>
+      <span>by <a href="https://x.com/exsiway_">@exsiway_</a></span>
+    </footer>
+  </div>
+</body>
+</html>

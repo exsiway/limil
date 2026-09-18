@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "runnerPairing": {
+      "title": "Runner browser pairing",
+      "description": "The hub address with the runner token as its fragment, e.g. http://daemon:8787#TOKEN. A browser started with this policy pairs itself as the executor for that hub, so a server browser never has to be driven by hand through a remote desktop.",
+      "type": "string"
+    },
+    "acceptAutonomousRisk": {
+      "title": "Accept autonomous execution on this machine",
+      "description": "Set together with runnerPairing to let this browser execute orders for the paired hub. Writing this policy IS the consent: whoever can place a file in Chromium's managed-policy directory already controls the machine and its browser profile, so requiring a click inside the browser as well protects nobody and only forces someone to drive a remote desktop. Without this the pairing is read and refused.",
+      "type": "boolean"
+    },
+    "runnerMaxFiresPerDay": {
+      "title": "Executions per rolling day for a headless runner",
+      "description": "The runner's daily fuse when nobody sets it in the popup: a server browser paired by policy has no popup. Capped by the extension's own ceiling (50); a value set in the popup wins over this one.",
+      "type": "integer",
+      "minimum": 1
+    }
+  }
+}

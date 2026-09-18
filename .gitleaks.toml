@@ -1,0 +1,37 @@
+# gitleaks configuration (CI: .github/workflows/ci.yml, "secret scan").
+#
+# The default rules stay on; what is added is an allow-list for things that
+# LOOK like secrets to a generic detector but are public by nature:
+#
+#   - 20-byte EVM addresses (0x + 40 hex): tokens, routers, contracts, test
+#     wallets. An address identifies; it does not authorise anything.
+#   - the USDC mint on Solana (base58), FOMO's "cash".
+#   - PLACEHOLDER_JWT in src/shared/daemon-api.js: a JWT-shaped string that
+#     expired at epoch zero, put into the signing sample INSTEAD of the real
+#     token before it leaves the browser.
+#   - the RSA PUBLIC key in extension/manifest.json, which fixes the extension
+#     id so a managed policy can name it. Chrome requires it in the clear and
+#     derives the id from it; the private half is not in this repo. The pattern
+#     below is the DER prefix of a 2048-bit SPKI *public* key, so a private key
+#     (PKCS#8, "MIIEv...") does not match it.
+#   - the "sk-live-0123456789abc..." string in test/sample-redacted.test.mjs:
+#     a key-shaped fixture the test feeds to the sample filter to check that
+#     a credential-shaped value keeps the sample OUT of storage. Its "secret"
+#     is the alphabet.
+#
+# Anything else JWT- or key-shaped is still reported. A 32-byte hex string
+# (a private key) is NOT on this list on purpose.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public on-chain identifiers and the documented JWT placeholder"
+regexTarget = "match"
+regexes = [
+  '''\b0x[0-9a-fA-F]{40}\b''',
+  '''EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v''',
+  '''eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0\.eyJleHAiOjAsInN1YiI6InJlZGFjdGVkIn0\.redacted-redacted-redacted-redacted''',
+  '''MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA[A-Za-z0-9+/]+={0,2}''',
+  '''sk-live-0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdef''',
+]

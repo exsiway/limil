@@ -1,0 +1,54 @@
+/* The side panel: a bar of our own and, under it, FOMO's block drawn with
+   FOMO's stylesheet (linked by panel.js from what the tab reports). The
+   colours below fall back to the same values shared/theme.js carries. */
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--lc-bg, #060510);
+  color: var(--lc-text, #f7f7f7);
+  color-scheme: dark;
+  overflow: hidden;
+}
+
+#bar {
+  display: flex; align-items: center; gap: 8px;
+  height: 32px; padding: 0 10px;
+  font-family: var(--lc-font, system-ui, sans-serif); font-size: 12px;
+  color: var(--lc-dim, #9899a3);
+  border-bottom: 1px solid var(--lc-line, #cbd0eb1a);
+}
+#bar .status { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#bar .status.bad { color: var(--lc-bad, #ff622e); }
+#bar .status.ok { color: var(--lc-buy, #21c95e); }
+.bar-btn {
+  border: none; background: var(--lc-card, #12111a); color: var(--lc-dim, #9899a3);
+  border-radius: var(--lc-r-sm, 8px); padding: 4px 8px; font: inherit; font-weight: 700;
+  cursor: pointer;
+}
+.bar-btn:hover { color: var(--lc-text, #f7f7f7); background: var(--lc-line, #cbd0eb1a); }
+.bar-btn[hidden] { display: none; }
+
+/* The block fills what is left. FOMO lays it out as a flex child of a
+   column; here the host is that column. Its own lists scroll inside it. */
+#host {
+  height: calc(100% - 32px);
+  display: flex; flex-direction: column;
+  padding: 8px; box-sizing: border-box;
+  overflow: hidden;
+}
+#host > * { flex: 1; min-height: 0; }
+
+/* A virtualised list of FOMO's stays in the mirror as the hidden source;
+   the shelf before it shows the cards, one slot each, in the panel's own
+   order (panel.js updateShelf). Room under the last card lets the person
+   scroll past it, which asks the page for more. */
+#host .lm-source { display: none !important; }
+#host .lm-shelf { padding-bottom: 600px; }
+#host .lm-shelf > .lm-slot { position: relative; }
+/* Nothing on the shelf may follow the page's absolute placement. */
+#host .lm-slot [style*="position: absolute"][style*="top:"] { position: static !important; top: auto !important; }
+/* Nothing in the mirror is a real link: a click is forwarded to the tab. */
+#host a { cursor: pointer; }
+/* The chevron that collapses FOMO's column has no place here. */
+#host button[aria-label*="discovery panel" i] { display: none; }
