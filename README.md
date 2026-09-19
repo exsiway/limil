@@ -126,11 +126,18 @@ Everything is set in one window, opened from the toolbar icon.
   says what. The **Journal** under them is what the extension did and why,
   newest last, with a Copy button for a bug report.
 
-## Free, and staying that way
+## Free for you, and staying that way
 
-limil is a non-commercial project, made to improve the everyday experience of
-FOMO users. It takes no fee on trades, has no paid tier and no
-plans for one; the code is MIT and the whole product is what you see here.
+limil is made to improve the everyday experience of FOMO users. It takes no fee
+on your trades and has no paid tier. The whole product is what you see here:
+the source is open to read, to change and to run for yourself, including the
+server half.
+
+What the licence reserves is the other direction. You may trade your own funds
+with it and host it for yourself; you may not sell it, host it for other people
+or take a cut of their trades. That reservation expires on its own: on
+**19 September 2029** this version becomes MIT, for everyone, whatever happens
+to the project by then.
 
 If it is useful to you and you want to support the author:
 
@@ -322,6 +329,9 @@ A 0.1.x extension and a 0.2.x server do not pair; update both.
 
 ## License
 
-MIT. See [LICENSE](LICENSE). The bundled fonts, Manrope and JetBrains Mono, are
+[Business Source License 1.1](LICENSE), with a change date of 19 September
+2029, after which this version is MIT. In short: read it, change it, run it for
+your own trading and on your own server; do not offer it to others or take a
+fee from their trades before that date. The bundled fonts, Manrope and JetBrains Mono, are
 under the SIL Open Font License; their texts are in `extension/licenses/`, and
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) lists everything shipped.

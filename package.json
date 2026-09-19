@@ -39,7 +39,7 @@
   "overrides": {
     "tmp": "^0.2.6"
   },
-  "license": "MIT",
+  "license": "BUSL-1.1",
   "homepage": "https://github.com/exsiway/limil",
   "repository": {
     "type": "git",

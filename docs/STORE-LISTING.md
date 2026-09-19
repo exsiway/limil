@@ -43,7 +43,8 @@ optional self-hosted mode a redacted copy (tokens removed) goes to the server
 you paired, so a browser there can sign the same way.
 
 limil is unofficial and not affiliated with FOMO, Privy or any exchange. Open
-source, MIT licence. Privacy policy: see the link below.
+source, Business Source License 1.1 (MIT from 19 September 2029). Privacy
+policy: see the link below.
 
 ## Permission justifications
 
