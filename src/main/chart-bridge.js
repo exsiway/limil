@@ -561,16 +561,25 @@ export function syncOrders({ orders = [], tokenAddress = null, marketCapUsd = nu
   }
 
   const report = { drawn: 0, skipped: [], range: null };
+  // KEEP THE UNITS WITH THE DEFERRED REQUEST. Dropping them here is what made
+  // a level vanish on RELOAD and only on reload: at a page load the panel
+  // syncs before FOMO has constructed the chart, so the request waits; when
+  // the chart arrived, flushPending drew from a request with no cap and no
+  // price, the level stayed the market cap it is stored as, and on an axis
+  // drawn in prices a cap is off the scale and is dropped. Moving between
+  // tokens never showed it, because by then the widget exists, nothing is
+  // deferred and the units travel with the request.
+  const deferred = { orders, tokenAddress, marketCapUsd, tokenPriceUsd };
   if (!widget) {
     // Keep the request: draw as soon as the chart appears.
-    pending = { orders, tokenAddress };
+    pending = deferred;
     report.skipped.push('widget not captured, deferred until the chart is ready');
     return report;
   }
 
   let chart;
   try { chart = widget.activeChart(); } catch (err) {
-    pending = { orders, tokenAddress };
+    pending = deferred;
     report.skipped.push(`chart not ready, deferred: ${String(err?.message || err)}`);
     return report;
   }
@@ -637,7 +646,17 @@ export function syncOrders({ orders = [], tokenAddress = null, marketCapUsd = nu
     if (range) {
       const mid = (range.from + range.to) / 2;
       if (mid > 0 && (price / mid > 1000 || mid / price > 1000)) {
-        report.skipped.push(`${order.id}: target ${price} is not in the scale of the axis (~${Math.round(mid)})`);
+        // WHY it does not fit decides whether this is worth reporting. With no
+        // cap and price for this token the level could not be converted at
+        // all, and on a chart drawn in prices a cap never fits: that is the
+        // ordinary state of the first sync after a load or a token change, and
+        // the panel redraws as soon as the two numbers arrive. Saying "not in
+        // the scale of the axis" there sends a person looking for a bug in the
+        // order.
+        const unconverted = !(Number(marketCapUsd) > 0) || !(Number(tokenPriceUsd) > 0);
+        report.skipped.push(unconverted
+          ? `${order.id}: deferred, the cap and price of this token are not known yet`
+          : `${order.id}: target ${price} is not in the scale of the axis (~${Math.round(mid)})`);
         continue;
       }
     }

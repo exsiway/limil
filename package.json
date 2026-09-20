@@ -1,6 +1,6 @@
 {
   "name": "limil",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "type": "module",
   "description": "Limit orders for FOMO (fomo.family). Chrome extension, runs entirely in your browser.",

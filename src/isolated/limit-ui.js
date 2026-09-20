@@ -651,6 +651,7 @@ export function applyTokenInfo(json) {
   const address = state.context?.address ?? tokenFromLocation(location.href);
   if (!address) return null;
   const info = findTokenInfo(json, address);
+  const hadUnits = freshMarketCap() !== null;
   // Collected piecewise: ticker and cap may come from different responses.
   if (info.priceUsd !== null) state.priceUsd = info.priceUsd;
   if (info.marketCapUsd !== null) {
@@ -660,6 +661,7 @@ export function applyTokenInfo(json) {
   }
   if (info.symbol && state.context) state.context.symbol = info.symbol;
   if (info.marketCapUsd !== null || info.symbol) render();
+  redrawWhenUnitsArrive(hadUnits);
   return info;
 }
 
@@ -699,12 +701,14 @@ export function applyBalances(balances, hint = {}) {
   const wallets = extractWallets(balances);
   // The balances response carries token facts too, the ticker, sometimes the cap.
   const info = findTokenInfo(balances, address);
+  const hadUnits = freshMarketCap() !== null;
   if (info.priceUsd !== null) state.priceUsd = info.priceUsd;
   if (info.marketCapUsd !== null) {
     state.marketCapUsd = info.marketCapUsd;
     state.marketCapAt = Date.now();
     state.marketCapFor = String(address).toLowerCase();
   }
+  redrawWhenUnitsArrive(hadUnits);
   // An empty response must not erase a known balance.
   if (!token && !cash && !state.context) return state.context;
 
@@ -1506,6 +1510,45 @@ function noteChartTrouble(report) {
   callBackground('runner.note', { text: `chart: ${key}` }).catch(() => { /* the journal is best effort */ });
 }
 
+/**
+ * The units to convert a level with: the cap and the price it was read
+ * beside, or nothing.
+ *
+ * THE PAIR BELONGS TO ONE TOKEN. Their ratio is the supply, and a supply is
+ * a property of a token, not of a page. After a move from one token to
+ * another the remembered cap is the PREVIOUS token's until the new balances
+ * arrive, and dividing this token's level by that token's supply lands the
+ * line confidently in the wrong place, or so far off the axis that it is
+ * dropped and the chart looks empty. `freshMarketCap` already refuses a
+ * foreign or stale cap; the price is only meaningful next to the cap it came
+ * with, so it goes when the cap goes.
+ */
+function chartUnits() {
+  const marketCapUsd = freshMarketCap();
+  return { marketCapUsd, tokenPriceUsd: marketCapUsd === null ? null : (state.priceUsd ?? null) };
+}
+
+/**
+ * Redraws the chart the moment the units become usable.
+ *
+ * The cap and the price arrive over the network, a moment after the page was
+ * opened or the token changed, and until they do a level stored as a cap
+ * cannot be placed on an axis drawn in prices: it is dropped as out of scale
+ * and the chart shows nothing. Nothing used to ask for a redraw afterwards,
+ * so on a blue chip the level stayed missing until the order list happened to
+ * change, which to a person looks like the take-profit vanishing on reload.
+ *
+ * Only on the transition from "no units" to "units", not on every response:
+ * balances are pushed often, and recreating the lines each time makes them
+ * flicker.
+ *
+ * @param {boolean} hadUnits whether the units were usable BEFORE the response
+ */
+function redrawWhenUnitsArrive(hadUnits) {
+  if (hadUnits || freshMarketCap() === null) return;
+  syncChart();
+}
+
 function syncChart() {
   callMain('chart.sync', {
     orders: state.orders ?? [],
@@ -1513,13 +1556,10 @@ function syncChart() {
     // still empty at the first sync, while the token in the URL is known
     // synchronously.
     tokenAddress: tokenFromLocation(location.href) ?? state.context?.address ?? null,
-    // The token's market cap right now. With the chart's own live price it
-    // gives the supply, which is what turns a level stored as a cap into the
-    // units this chart happens to be drawn in.
-    marketCapUsd: state.marketCapUsd ?? null,
-    // With the cap above, the supply: the one number that says whether this
-    // chart is drawn in caps or in prices.
-    tokenPriceUsd: state.priceUsd ?? null,
+    // The token's market cap and price right now. Together they give the
+    // supply, which is what turns a level stored as a cap into the units this
+    // chart happens to be drawn in.
+    ...chartUnits(),
   }).then(noteChartTrouble).catch(() => { /* no chart or not ready yet */ });
 }
 
@@ -1536,8 +1576,7 @@ export async function refreshChartLines() {
   }
   const address = tokenFromLocation(location.href) ?? state.context?.address ?? null;
   callMain('chart.sync', {
-    orders: state.orders ?? [], tokenAddress: address,
-    marketCapUsd: state.marketCapUsd ?? null, tokenPriceUsd: state.priceUsd ?? null,
+    orders: state.orders ?? [], tokenAddress: address, ...chartUnits(),
   })
     .then(noteChartTrouble)
     .catch(() => { /* there may be no chart on this page */ });
