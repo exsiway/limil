@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "minimum_chrome_version": "114",
   "name": "__MSG_extName__",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "//key": "Fixes the extension id (fmjcaabdnlaefjlbkhidnonbpciangdc) so a Chromium managed policy can address this extension by name. Without it an unpacked build gets an id derived from its path, which differs on every machine and cannot be written into a policy in advance. The private half is not needed to load unpacked and is not in this repo.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApukwu+bLsgzx3MaQJ3B1VoxhXyMGxjFUH4tuNGZYfq9sTVTHRkRV5KeQuO3+9LVPyQ52G7JmEw1z5b0MYAuCZUjxrKg644TSIV5khGxHXwDMTxlqk+3W2ZUp+SOZ8T71X5S7CH03mM/GW96EYmN/VRK+AGCW/bEfESlvGKTDxjJjKear1BEoTk1ErPlF/xUvm2wBIUyniyTBSJoA+HhaU3T2r5wjxVly+quBXEpxCivoD5eMpUPKSW6elNxhf03Iha56CWLKyFNjS9/sdrfh0D6gP0TU60wJEjB2d2dXaKLjXxHeBhPvMHPoVJSrsS94kSIxQOZEH8EkPqxjGtExUwIDAQAB",
   "description": "__MSG_extDesc__",

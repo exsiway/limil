@@ -109,7 +109,7 @@ data to determine creditworthiness or for lending.
 
 ## Privacy policy URL
 
-https://exsiway.github.io/limil-privacy/privacy.html
+https://exsiway.github.io/limil/privacy.html
 
 ## Trademarks and affiliation
 

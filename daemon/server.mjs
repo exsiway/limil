@@ -32,7 +32,7 @@ import {
   AUTH_WINDOW_MS, PROTOCOL, authFresh, authMessage, bodyHashOf, parseAuthorization,
 } from '../src/shared/daemon-api.js';
 
-export const VERSION = '0.2.2';
+export const VERSION = '0.2.3';
 const MAX_BODY = 512 * 1024;
 /** Failed pairing attempts allowed per client address inside PAIR_WINDOW_MS. */
 const PAIR_ATTEMPTS = 10;
