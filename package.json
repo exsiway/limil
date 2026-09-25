@@ -27,7 +27,7 @@
     "pack:store": "node scripts/pack-store.mjs"
   },
   "dependencies": {
-    "viem": "2.56.6"
+    "viem": "2.56.8"
   },
   "devDependencies": {
     "@ethereumjs/common": "^4.4.0",
